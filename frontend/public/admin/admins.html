@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Admins - EventGenie Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#059669',
+            secondary: '#7C3AED',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: 0, transform: 'translateY(10px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          },
+          animation: {
+            fadeInUp: 'fadeInUp 0.6s ease forwards',
+          },
+        },
+      },
+    };
+  </script>
+</head>
+
+<body
+  class="min-h-screen bg-gradient-to-br from-primary to-secondary text-white flex flex-col font-sans m-0 transition-colors duration-300">
+
+  <!-- Professional Navigation -->
+  <div id="navbar-container"></div>
+
+  <!-- Page Content -->
+  <main class="flex-1 pt-20 px-6 pb-6">
+    <div class="max-w-7xl mx-auto space-y-8">
+
+      <!-- Header -->
+      <div class="flex flex-col space-y-6">
+        <!-- Title Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold">Manage Admins</h1>
+          <div class="flex gap-3">
+            <button onclick="openAddAdminModal()"
+              class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition duration-200 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl">
+              <i class="bi bi-person-plus mr-2"></i>
+              Add Admin
+            </button>
+            <a href="dashboard.html"
+              class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition duration-200 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl">
+              <i class="bi bi-arrow-left mr-2"></i>
+              Back to Dashboard
+            </a>
+          </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div class="flex-1">
+            <input type="text" id="searchInput" placeholder="Search admins..."
+              class="w-full px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white transition duration-200" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Admins Table -->
+      <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Admin</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Email</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Phone</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Joined Date</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Admins will be loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- No Admins Message -->
+      <div id="noAdmins" class="hidden text-center py-12">
+        <i class="bi bi-person-x text-6xl text-gray-400 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">No Admins Found</h3>
+        <p class="text-gray-500 dark:text-gray-400">No admins match your search criteria.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Add/Edit Admin Modal -->
+  <div id="adminModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 dark:text-white">Add Admin</h2>
+        <button onclick="closeAdminModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <i class="bi bi-x-lg text-xl"></i>
+        </button>
+      </div>
+
+      <form id="adminForm" onsubmit="handleAdminSubmit(event)">
+        <input type="hidden" id="adminId" />
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+            <input type="text" id="firstName" required
+              class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+            <input type="text" id="lastName" required
+              class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+            <input type="email" id="email" required
+              class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+            <input type="tel" id="phone"
+              class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address</label>
+            <input type="text" id="address"
+              class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+          </div>
+
+          <div id="passwordFields">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+              <input type="password" id="password" required
+                class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button type="submit"
+            class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition duration-200 font-semibold">
+            Save
+          </button>
+          <button type="button" onclick="closeAdminModal()"
+            class="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition duration-200 font-semibold">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer
+    class="text-center py-4 text-gray-700 dark:text-gray-300 text-sm bg-white bg-opacity-10 backdrop-blur-md mt-auto">
+    &copy; 2025 EventGenie. All rights reserved.
+  </footer>
+
+  <script src="../../assets/js/display_menu.js"></script>
+  <!-- Load Navbar -->
+  <script>
+    let allAdmins = [];
+
+    fetch('../../shared/navbar.html')
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById('navbar-container').innerHTML = data;
+
+        // Set active state for Manage Admins
+        const navAdmins = document.getElementById('nav-admin-admins');
+        const mobileNavAdmins = document.getElementById('mobile-nav-admin-admins');
+        if (navAdmins) navAdmins.classList.add('bg-primary');
+        if (mobileNavAdmins) mobileNavAdmins.classList.add('bg-primary');
+
+        // Initialize navbar menus after loading
+        initializeNavbarMenus();
+        showRoleBasedNavigation();
+
+        // Load admins after navbar is loaded
+        loadAdmins();
+      })
+      .catch(error => console.error('Error loading navbar:', error));
+
+    // Function to check authentication and role
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+
+      if (!token || !userData) {
+        window.location.href = '../login.html';
+        return false;
+      }
+
+      try {
+        const user = JSON.parse(userData);
+        if (user.role !== 'admin') {
+          alert('Access denied. Admin privileges required.');
+          window.location.href = '../login.html';
+          return false;
+        }
+        
+        // Check if admin is active
+        const status = user.status || 'pending_approval';
+        if (status === 'blocked' || status === 'pending_approval') {
+          alert('Your account is not active. Please contact support.');
+          window.location.href = '../login.html';
+          return false;
+        }
+        
+        return true;
+      } catch (error) {
+        window.location.href = '../login.html';
+        return false;
+      }
+    }
+
+    // Function to load admins from API
+    async function loadAdmins() {
+      if (!checkAuth()) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('../../../backend/api.php/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const allUsers = await response.json();
+          // Filter only admin users
+          allAdmins = allUsers.filter(user => user.role === 'admin');
+          displayAdmins(allAdmins);
+        } else if (response.status === 401) {
+          alert('Session expired. Please login again.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '../login.html';
+        } else {
+          console.error('Failed to load admins');
+        }
+      } catch (error) {
+        console.error('Error loading admins:', error);
+      }
+    }
+
+    // Function to display admins in the table
+    function displayAdmins(admins) {
+      const tbody = document.getElementById('adminsTableBody');
+      const noAdmins = document.getElementById('noAdmins');
+      tbody.innerHTML = '';
+
+      if (admins.length === 0) {
+        noAdmins.classList.remove('hidden');
+        return;
+      }
+
+      noAdmins.classList.add('hidden');
+
+      admins.forEach(admin => {
+        const row = document.createElement('tr');
+
+        // Admin info
+        const adminCell = document.createElement('td');
+        adminCell.className = 'px-6 py-4 whitespace-nowrap';
+        adminCell.innerHTML = `
+          <div class="flex items-center">
+            <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold">
+              ${admin.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900 dark:text-white">${admin.name}</div>
+            </div>
+          </div>
+        `;
+
+        // Email
+        const emailCell = document.createElement('td');
+        emailCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400';
+        emailCell.textContent = admin.email || 'N/A';
+
+        // Phone
+        const phoneCell = document.createElement('td');
+        phoneCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400';
+        phoneCell.textContent = admin.phone || 'N/A';
+
+        // Status
+        const statusCell = document.createElement('td');
+        statusCell.className = 'px-6 py-4 whitespace-nowrap';
+        const statusClass = {
+          'active': 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+          'blocked': 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
+          'pending_approval': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+        }[admin.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+        const statusText = {
+          'active': 'Active',
+          'blocked': 'Blocked',
+          'pending_approval': 'Pending Approval'
+        }[admin.status] || 'Unknown';
+        statusCell.innerHTML = `
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+            ${statusText}
+          </span>
+        `;
+
+        // Joined date
+        const joinedCell = document.createElement('td');
+        joinedCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400';
+        joinedCell.textContent = admin.created_at ? new Date(admin.created_at).toLocaleDateString() : 'N/A';
+
+        // Actions
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium';
+        
+        // Get current user to prevent self-deletion
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const isCurrentUser = admin.user_id == currentUser.id;
+        
+        // Add status update button
+        let statusButton = '';
+        if (admin.status === 'active') {
+          statusButton = `<button onclick="updateAdminStatus(${admin.user_id}, 'blocked')"
+                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 mr-3">
+            Block
+          </button>`;
+        } else if (admin.status === 'blocked') {
+          statusButton = `<button onclick="updateAdminStatus(${admin.user_id}, 'active')"
+                  class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3">
+            Activate
+          </button>`;
+        } else if (admin.status === 'pending_approval') {
+          statusButton = `<button onclick="updateAdminStatus(${admin.user_id}, 'active')"
+                  class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-3">
+            Approve
+          </button>`;
+        }
+        
+        actionsCell.innerHTML = `
+          <button onclick="editAdmin(${admin.user_id})"
+                  class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+            Edit
+          </button>
+          ${statusButton}
+          ${!isCurrentUser ? `<span class="text-gray-400 text-xs">(Delete disabled)</span>` : '<span class="text-gray-400 text-xs">Current User</span>'}
+        `;
+
+        row.appendChild(adminCell);
+        row.appendChild(emailCell);
+        row.appendChild(phoneCell);
+        row.appendChild(statusCell);
+        row.appendChild(joinedCell);
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    // Function to open add admin modal
+    function openAddAdminModal() {
+      document.getElementById('adminModal').classList.remove('hidden');
+      document.getElementById('modalTitle').textContent = 'Add Admin';
+      document.getElementById('adminForm').reset();
+      document.getElementById('adminId').value = '';
+      document.getElementById('passwordFields').style.display = 'block';
+      document.getElementById('password').required = true;
+    }
+
+    // Function to open edit admin modal
+    async function editAdmin(adminId) {
+      const admin = allAdmins.find(a => a.user_id == adminId);
+      if (!admin) {
+        alert('Admin not found');
+        return;
+      }
+
+      document.getElementById('adminModal').classList.remove('hidden');
+      document.getElementById('modalTitle').textContent = 'Edit Admin';
+      document.getElementById('adminId').value = admin.user_id;
+      
+      // Split name into first and last
+      const nameParts = admin.name.split(' ');
+      document.getElementById('firstName').value = nameParts[0] || '';
+      document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+      document.getElementById('email').value = admin.email || '';
+      document.getElementById('phone').value = admin.phone || '';
+      document.getElementById('address').value = admin.address || '';
+      
+      // Hide password field for edit (optional)
+      document.getElementById('passwordFields').style.display = 'none';
+      document.getElementById('password').required = false;
+    }
+
+    // Function to close admin modal
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+      document.getElementById('adminForm').reset();
+    }
+
+    // Function to update admin status
+    async function updateAdminStatus(adminId, newStatus) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`../../../backend/api.php/users/${adminId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const statusText = {
+            'active': 'activated',
+            'blocked': 'blocked',
+            'pending_approval': 'set to pending approval'
+          }[newStatus] || 'updated';
+          alert(`Admin status ${statusText} successfully`);
+          loadAdmins(); // Reload admins to reflect changes
+        } else {
+          const error = await response.json();
+          alert('Failed to update admin status: ' + (error.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Network error: ' + error.message);
+      }
+    }
+
+    // Function to handle admin form submit
+    async function handleAdminSubmit(event) {
+      event.preventDefault();
+      
+      const adminId = document.getElementById('adminId').value;
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (adminId) {
+          // Update existing admin - Note: API doesn't support updating role or password via users endpoint
+          // We'll need to handle this differently or extend the API
+          alert('Admin update functionality requires API extension. Currently, you can only create new admins.');
+          closeAdminModal();
+          return;
+        } else {
+          // Create new admin
+          const response = await fetch('../../../backend/api.php/signup', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              first_name: firstName,
+              last_name: lastName,
+              email: email,
+              password: password,
+              phone: phone || '',
+              address: address || '',
+              role: 'admin'
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            alert('Admin created successfully');
+            closeAdminModal();
+            loadAdmins(); // Reload admins to reflect changes
+          } else {
+            const error = await response.json();
+            alert('Failed to create admin: ' + (error.error || 'Unknown error'));
+          }
+        }
+      } catch (error) {
+        console.error('Error saving admin:', error);
+        alert('Error saving admin: ' + error.message);
+      }
+    }
+
+    // Function to delete admin (disabled - use status update instead)
+    async function deleteAdmin(adminId) {
+      alert('Admin deletion is not allowed. Use status update to block admins instead.');
+      return;
+      
+      // Get current user to prevent self-deletion
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (adminId == currentUser.id) {
+        alert('You cannot delete your own account');
+        return;
+      }
+
+      if (!confirm('Are you sure you want to delete this admin? This action cannot be undone.')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`../../../backend/api.php/users/${adminId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          alert('Admin deleted successfully');
+          loadAdmins(); // Reload admins to reflect changes
+        } else {
+          const error = await response.json();
+          alert('Failed to delete admin: ' + (error.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        alert('Error deleting admin: ' + error.message);
+      }
+    }
+
+    // Add event listener for search
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', filterAdmins);
+    });
+
+    function filterAdmins() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = allAdmins.filter(admin => {
+        const matchesSearch = admin.name.toLowerCase().includes(searchTerm) || 
+                             (admin.email && admin.email.toLowerCase().includes(searchTerm));
+        return matchesSearch;
+      });
+
+      displayAdmins(filtered);
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('adminModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeAdminModal();
+      }
+    });
+
+    // Make functions globally accessible for onclick handlers
+    window.updateAdminStatus = updateAdminStatus;
+    window.editAdmin = editAdmin;
+    window.deleteAdmin = deleteAdmin;
+    window.openAddAdminModal = openAddAdminModal;
+    window.closeAdminModal = closeAdminModal;
+    window.handleAdminSubmit = handleAdminSubmit;
+  </script>
+</body>
+
+</html>
+
